@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>中秋国庆祝福动画</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"KaiTi","楷体",sans-serif;}
+body{
+  width:100vw;height:100vh;overflow:hidden;background:#222;
+}
+.popup{
+  position:absolute;
+  padding:8px;
+  border-radius:6px;
+  box-shadow:0 2px 8px #0004;
+  display:flex;align-items:center;justify-content:center;
+  color:#333;
+  white-space:nowrap;
+}
+.main-box{
+  width:521px;height:220px;
+  background:mistyrose;
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  box-shadow:0 0 12px #0005;border-radius:8px;
+}
+.main-title{
+  font-size:20px;color:#b03060;text-align:center;padding:10px;
+}
+.btn-group{margin-top:12px;display:flex;gap:30px;}
+button{
+  width:100px;height:36px;font-size:16px;border:none;border-radius:4px;cursor:pointer;
+}
+.btn-yes{background:lightgreen;}
+.btn-no{background:lightcoral;}
+.tip-box{
+  width:320px;height:110px;background:#fff;
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;color:#d81b60;box-shadow:0 0 10px #0004;border-radius:6px;
+}
+</style>
+</head>
+<body>
+<div class="main-box" id="mainPopup">
+  <div class="main-title">祝齐思雨中秋节国庆节快乐(*^▽^*)</div>
+  <div class="btn-group">
+    <button class="btn-yes" onclick="onYes()">快乐</button>
+    <button class="btn-no" onclick="onNo()">不快乐</button>
+  </div>
+</div>
+
+<script>
+// ==================== 祝福语 ====================
+const MESSAGES = [
+  "中秋快乐😁", "国庆节快乐😁","阖家团圆", "月圆人圆", "花好月圆",
+  "事事如意", "平安喜乐", "心想事成", "天天开心",
+  "所愿皆所得", "未来可期", "好运连连", "笑口常开",
+  "身体健康", "吃月饼不长胖", "要一直快乐", "闪闪发光",
+  "被偏爱 被珍惜", "团团圆圆", "你很值得", "永远开心",
+  "想要的都拥有", "得不到的都释怀", "前程似锦", "喜乐无忧",
+  "做喜欢的事", "见想见的人", "好运爆棚", "一切顺利",
+  "月是故乡明", "千里共婵娟", "月饼超好吃", "桂花香满园",
+  "团圆夜 共赏月", "人月两团圆", "中秋佳节", "花灯映月",
+  "旅游不堵车"
+];
+// ==================== 背景色 ====================
+const BG_COLORS = [
+  "pink", "lightblue", "lightgreen", "yellow", "lightcoral",
+  "lightgray", "lavender", "coral", "bisque", "aquamarine",
+  "plum", "honeydew", "mistyrose", "oldlace", "skyblue",
+  "lightpink", "lightyellow",
+];
+// ==================== 最终大字内容 ====================
+const FINAL_TEXT = "节日快乐(✿◕‿◕✿)༼ つ ◕_◕ ༽つ";
+
+const popupCount = 200;
+let popups = [];
+let finalPopup = null;
+const mainPopupEl = document.getElementById("mainPopup");
+
+// ---------------- 点击快乐 ----------------
+function onYes(){
+  mainPopupEl.remove();
+  setTimeout(startHeartCreation,200);
+}
+// ---------------- 点击不快乐 ----------------
+function onNo(){
+  const tip = document.createElement('div');
+  tip.className = "tip-box";
+  tip.innerText = "不能选这个哦 😊,要快乐哦";
+  document.body.appendChild(tip);
+  setTimeout(()=>tip.remove(),1800);
+}
+
+// ==================== 爱心点生成 ====================
+function generateHeartPoints(numPoints){
+  const layers = 8;
+  const weights = Array.from({length:layers},(_,i)=>i+1);
+  const totalW = weights.reduce((a,b)=>a+b,0);
+  let counts = weights.map(w=>Math.max(1,Math.round(numPoints * w / totalW)));
+  while(counts.reduce((a,b)=>a+b,0)>numPoints){
+    let idx = counts.indexOf(Math.max(...counts));
+    counts[idx]--;
+  }
+  while(counts.reduce((a,b)=>a+b,0)<numPoints){
+    let idx = counts.indexOf(Math.min(...counts));
+    counts[idx]++;
+  }
+  const points = [];
+  for(let layer=0;layer<layers;layer++){
+    const r = (layer+1)/layers;
+    const n = counts[layer];
+    const offset = layer * Math.PI / Math.max(1,n);
+    for(let i=0;i<n;i++){
+      const t = 2 * Math.PI * i / n + offset;
+      const x = 16 * Math.sin(t)**3;
+      const y = 13*Math.cos(t) -5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t);
+      const nx = x /16.0;
+      const ny = -(y+6)/16.0;
+      points.push([nx*r, ny*r]);
+    }
+  }
+  return points;
+}
+
+// ==================== 创建单个祝福弹窗 ====================
+function createPopup(x,y,msg,bgColor){
+  const el = document.createElement("div");
+  el.className="popup";
+  el.style.left = x+"px";
+  el.style.top = y+"px";
+  el.style.width = "132px";
+  el.style.height = "42px";
+  el.style.background = bgColor;
+  el.innerText = msg;
+  el.style.opacity = 1;
+  document.body.appendChild(el);
+  return el;
+}
+
+// ==================== 逐个生成爱心弹窗 ====================
+function startHeartCreation(){
+  const sw = window.innerWidth;
+  const sh = window.innerHeight;
+  const cx = sw/2, cy = sh/2;
+  const base = Math.min(sw,sh)/3;
+  let points = generateHeartPoints(popupCount);
+  //打乱点
+  for(let i=points.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [points[i],points[j]] = [points[j],points[i]];
+  }
+  const ww =132, wh=42;
+  const targets = [];
+  for(let [px,py] of points){
+    const tx = cx + px*base - ww/2;
+    const ty = cy + py*base - wh/2;
+    targets.push([tx,ty]);
+  }
+  createOneByOne(0,targets,22);
+}
+function createOneByOne(idx,targets,delay){
+  if(idx >= targets.length){
+    setTimeout(phaseExplode,1300);
+    return;
+  }
+  const [tx,ty] = targets[idx];
+  const msg = MESSAGES[Math.floor(Math.random()*MESSAGES.length)];
+  const bg = BG_COLORS[Math.floor(Math.random()*BG_COLORS.length)];
+  const el = createPopup(tx,ty,msg,bg);
+  popups.push(el);
+  setTimeout(()=>createOneByOne(idx+1,targets,delay),delay);
+}
+
+// ==================== 阶段2：炸开铺满全屏 ====================
+function phaseExplode(){
+  const alive = popups.filter(el=>el.parentElement);
+  if(!alive.length) return;
+  const sw = window.innerWidth;
+  const sh = window.innerHeight;
+  const n = alive.length;
+  let bestCols=1;
+  let bestDiff = Infinity;
+  for(let c=1;c<=n;c++){
+    const r = Math.ceil(n/c);
+    const ratio = c/r;
+    const diff = Math.abs(ratio - sw/sh);
+    if(diff < bestDiff){
+      bestDiff = diff;
+      bestCols = c;
+    }
+  }
+  const cols = bestCols;
+  const rows = Math.ceil(n/cols);
+  const cellW = sw/cols;
+  const cellH = sh/rows;
+  let cells = [];
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++) cells.push([r,c]);
+  for(let i=cells.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [cells[i],cells[j]] = [cells[j],cells[i]];
+  }
+  const ww=132, wh=42;
+  const targets = [];
+  for(let [r,c] of cells.slice(0,n)){
+    const baseX = c * cellW;
+    const baseY = r * cellH;
+    const ox = Math.random()*cellW;
+    const oy = Math.random()*cellH;
+    let x = baseX + ox - ww/2;
+    let y = baseY + oy - wh/2;
+    x = Math.max(0, Math.min(x, sw - ww));
+    y = Math.max(0, Math.min(y, sh - wh));
+    targets.push([x,y]);
+  }
+  while(targets.length < n){
+    targets.push([
+      Math.floor(Math.random() * Math.max(0, sw - ww)),
+      Math.floor(Math.random() * Math.max(0, sh - wh))
+    ]);
+  }
+  for(let i=targets.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [targets[i],targets[j]] = [targets[j],targets[i]];
+  }
+  animateExplode(alive, targets, phaseFadeOut);
+}
+
+function animateExplode(windows, targets, onComplete){
+  const pairs = [];
+  for(let i=0;i<windows.length;i++){
+    if(i>=targets.length) break;
+    pairs.push([windows[i], targets[i]]);
+  }
+  if(!pairs.length){onComplete();return;}
+  let remaining = pairs.length;
+  function oneDone(){
+    remaining--;
+    if(remaining<=0) onComplete();
+  }
+  const steps = 10;
+  const interval =12;
+  for(let [win, [tx,ty]] of pairs){
+    const sx = parseFloat(win.style.left);
+    const sy = parseFloat(win.style.top);
+    function path(t){
+      const u = 1 - (1-t)**2;
+      return [sx + (tx-sx)*u, sy + (ty-sy)*u];
+    }
+    const delay = Math.floor(Math.random()*40);
+    animatePath(win, path, delay, steps, interval, oneDone);
+  }
+}
+function animatePath(el, pathFn, delay, steps, interval, onDone){
+  setTimeout(()=>{
+    let step = 0;
+    function move(){
+      if(!el.parentElement){if(onDone)onDone();return;}
+      if(step > steps){if(onDone)onDone();return;}
+      const t = step/steps;
+      const [x,y] = pathFn(t);
+      el.style.left = x+"px";
+      el.style.top = y+"px";
+      step++;
+      setTimeout(move, interval);
+    }
+    move();
+  },delay);
+}
+
+// ==================== 阶段3：淡出其余弹窗，放大最后一个 ====================
+function phaseFadeOut(){
+  const alive = popups.filter(el=>el.parentElement);
+  if(!alive.length) return;
+  finalPopup = alive[alive.length-1];
+  const others = alive.slice(0,-1);
+  if(!others.length){
+    setTimeout(()=>enlargeFinal(finalPopup),200);
+    return;
+  }
+  let fadeDone = 0;
+  const fadeTotal = others.length;
+  function onOneFaded(){
+    fadeDone++;
+    if(fadeDone >= fadeTotal){
+      if(finalPopup && finalPopup.parentElement){
+        setTimeout(()=>enlargeFinal(finalPopup),300);
+      }
+    }
+  }
+  for(let w of others){
+    fadeOut(w, onOneFaded);
+  }
+}
+function fadeOut(el, onDone, alpha=1){
+  if(!el.parentElement){if(onDone)onDone();return;}
+  if(alpha <=0){
+    el.remove();
+    if(onDone) onDone();
+    return;
+  }
+  el.style.opacity = alpha;
+  setTimeout(()=>{
+    fadeOut(el,onDone, alpha -0.07);
+  },40);
+}
+
+function enlargeFinal(win){
+  win.innerText = FINAL_TEXT;
+  win.style.color="#c2185b";
+  win.style.background="mistyrose";
+  const sw = window.innerWidth;
+  const sh = window.innerHeight;
+  const FINAL_W = 666;
+  const FINAL_H = 180;
+  const FINAL_FONT =24;
+  const START_FONT =11;
+  const tx = (sw - FINAL_W)/2;
+  const ty = (sh - FINAL_H)/2;
+  const sx = parseFloat(win.style.left);
+  const sy = parseFloat(win.style.top);
+  const s_w = 132;
+  const s_h =42;
+  const steps = 28;
+  const interval =14;
+  function stepMove(i){
+    if(!win.parentElement) return;
+    if(i>steps){
+      setTimeout(()=>fadeOut(win),2600);
+      return;
+    }
+    const t = i/steps;
+    const u = 1 - (1-t)**3;
+    const cur_w = s_w + (FINAL_W - s_w)*u;
+    const cur_h = s_h + (FINAL_H - s_h)*u;
+    const cur_x = sx + (tx - sx)*u;
+    const cur_y = sy + (ty - sy)*u;
+    const cur_font = START_FONT + (FINAL_FONT - START_FONT)*u;
+    win.style.left = cur_x+"px";
+    win.style.top = cur_y+"px";
+    win.style.width = cur_w+"px";
+    win.style.height = cur_h+"px";
+    win.style.fontSize = cur_font+"px";
+    setTimeout(()=>stepMove(i+1),interval);
+  }
+  stepMove(0);
+}
+</script>
+</body>
+</html>
